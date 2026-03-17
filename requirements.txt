@@ -1,0 +1,10 @@
+tensorflow
+numpy
+scipy
+matplotlib
+gwpy
+gwosc
+jupyter
+scikit-learn
+seaborn
+pillow

@@ -1,0 +1,38 @@
+Every time you open Jupyter:
+```
+1. Open Anaconda Prompt
+      ↓
+2. conda activate gw
+      ↓
+3. cd C:\Users\srika\gw_wd
+      ↓
+4. jupyter notebook
+      ↓
+5. Open 00_loader.ipynb
+      ↓
+6. Run All Cells (Cell → Run All)
+      ↓
+7. Open whatever notebook you're working on
+      ↓
+8. Start working! ✅
+```
+
+---
+
+## Also: Save Your Notebooks Properly
+
+Always do this before closing:
+```
+Ctrl + S          → Save current notebook
+File → Save       → Same thing
+```
+
+Jupyter autosaves every 2 minutes but **always manually save before closing!**
+
+---
+
+## Backup Your Data (Important!)
+
+Copy your data folder somewhere safe:
+```
+C:\Users\srika\gw_wd\data\

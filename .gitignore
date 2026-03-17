@@ -1,0 +1,36 @@
+# Data files
+data/events/*.npy
+data/noise/*.npy
+data/dataset/
+data/dataset_qtransform/
+
+# Model files
+models/*.keras
+models/*.h5
+
+# Results
+results/*.png
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Conda env (only if inside project)
+gw/
+gw_env/
+env/
+
+# Environment variables
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
