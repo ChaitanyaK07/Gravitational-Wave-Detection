@@ -8,3 +8,5 @@ jupyter
 scikit-learn
 seaborn
 pillow
+gradio 
+pillow
