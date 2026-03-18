@@ -1,0 +1,34 @@
+
+GRAVITATIONAL WAVE DETECTION MODEL - TRAINING SUMMARY
+============================================================
+
+MODEL ARCHITECTURE:
+- Type: Convolutional Neural Network (CNN)
+- Total Parameters: 27,001,377
+- Input: 224x224x3 spectrogram images
+- Output: Binary classification (0=noise, 1=signal)
+
+TRAINING CONFIGURATION:
+- Optimizer: Adam (lr=0.001)
+- Loss: Binary Crossentropy
+- Epochs trained: 20
+- Batch size: 16
+- Training samples: 65
+- Test samples: 17
+
+TEST SET PERFORMANCE:
+- Accuracy : 58.82%
+- Precision: 0.00%
+- Recall   : 0.00%
+- F1-Score : 0.00%
+
+CONFUSION MATRIX:
+              Predicted
+            Noise  Signal
+Actual Noise   10      0
+      Signal    7      0
+
+MODEL SAVED TO:
+C:\Users\srika\gw_wd\models\best_model.keras
+
+============================================================

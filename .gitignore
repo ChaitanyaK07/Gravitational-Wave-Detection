@@ -10,9 +10,8 @@ models/*.h5
 
 # Results
 results/*.png
+!results/figures/sample_*.png
 
-results/
-*.png
 
 # Python
 __pycache__/
