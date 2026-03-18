@@ -11,7 +11,7 @@ import os
 # Page config
 st.set_page_config(
     page_title="Gravitational Wave Detector",
-    page_icon="🌊",
+    
     layout="wide"
 )
 
@@ -21,7 +21,7 @@ st.markdown("*AI-powered detection of cosmic collisions using deep learning*")
 
 # Sidebar
 with st.sidebar:
-    st.header("📊 Model Info")
+    st.header(" Model Info")
     st.info("""
     **Architecture:** 4-layer CNN  
     **Parameters:** 8.5M  
@@ -30,7 +30,7 @@ with st.sidebar:
     **Input:** 224×224 Q-transform spectrograms
     """)
     
-    st.header("🔬 Technology")
+    st.header(" Technology")
     st.markdown("""
     - TensorFlow/Keras
     - gwpy (LIGO data)
@@ -78,14 +78,14 @@ SAMPLE_PREDICTIONS = {
 }
 
 # Main content
-st.header("🎯 Interactive Demo")
+st.header(" Interactive Demo")
 st.markdown("Select a sample to see the model's prediction:")
 
 # Sample selector
 sample_choice = st.selectbox(
     "Choose a spectrogram:",
     options=list(SAMPLE_PREDICTIONS.keys()),
-    format_func=lambda x: f"{'🌊 ' if 'GW' in x else '📊 '}{x} - {SAMPLE_PREDICTIONS[x]['label']}"
+    format_func=lambda x: f"{' ' if 'GW' in x else ' '}{x} - {SAMPLE_PREDICTIONS[x]['label']}"
 )
 
 sample = SAMPLE_PREDICTIONS[sample_choice]
@@ -94,7 +94,7 @@ sample = SAMPLE_PREDICTIONS[sample_choice]
 col1, col2 = st.columns([1, 1])
 
 with col1:
-    st.subheader("📈 Q-Transform Spectrogram")
+    st.subheader(" Q-Transform Spectrogram")
     
     # Try to load image, show placeholder if not found
     try:
@@ -108,16 +108,16 @@ with col1:
     st.caption(sample['description'])
 
 with col2:
-    st.subheader("🤖 Model Prediction")
+    st.subheader(" Model Prediction")
     
     prediction = sample['prediction']
     
     # Result display
     if prediction > 0.5:
-        st.success("### ✅ GRAVITATIONAL WAVE DETECTED")
+        st.success("###  GRAVITATIONAL WAVE DETECTED")
         st.metric("Confidence", f"{prediction*100:.1f}%", delta="High confidence")
     else:
-        st.info("### ❌ BACKGROUND NOISE")
+        st.info("###  BACKGROUND NOISE")
         st.metric("Confidence", f"{(1-prediction)*100:.1f}%", delta="High confidence")
     
     # Details
@@ -137,28 +137,28 @@ with col2:
 
 # How it works section
 st.markdown("---")
-st.header("🔧 How It Works")
+st.header(" How It Works")
 
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    st.markdown("### 1️⃣ Data")
+    st.markdown("### 1️ Data")
     st.markdown("LIGO strain data from gravitational wave events")
 
 with col2:
-    st.markdown("### 2️⃣ Processing")
+    st.markdown("### 2️ Processing")
     st.markdown("Q-transform spectrograms (time-frequency)")
 
 with col3:
-    st.markdown("### 3️⃣ CNN")
+    st.markdown("### 3️ CNN")
     st.markdown("4-layer deep learning model")
 
 with col4:
-    st.markdown("### 4️⃣ Prediction")
+    st.markdown("### 4️ Prediction")
     st.markdown("Signal or Noise classification")
 
 # Technical details
-with st.expander("📚 Technical Details"):
+with st.expander(" Technical Details"):
     st.markdown("""
     **Preprocessing Pipeline:**
     - FFT-based whitening to normalize noise floor
@@ -181,7 +181,7 @@ with st.expander("📚 Technical Details"):
     """)
 
 # Results section
-with st.expander("📊 Model Performance"):
+with st.expander(" Model Performance"):
     col1, col2, col3 = st.columns(3)
     
     with col1:
@@ -199,7 +199,7 @@ with st.expander("📊 Model Performance"):
 
 # About section
 st.markdown("---")
-st.header("ℹ️ About Gravitational Waves")
+st.header("ℹ About Gravitational Waves")
 
 st.markdown("""
 Gravitational waves are ripples in spacetime caused by massive cosmic events 
