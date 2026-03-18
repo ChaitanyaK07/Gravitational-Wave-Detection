@@ -17,13 +17,15 @@ st.set_page_config(
     layout="wide"
 )
 
-url = "https://drive.google.com/file/d/16LqCb_cxJZM_tXADTNhdYXa03vjfN-aV/view?usp=drive_link"
+from huggingface_hub import hf_hub_download
+import tensorflow as tf
 
-r = requests.get(url)
-with open("best_model.keras", "wb") as f:
-    f.write(r.content)
+model_path = hf_hub_download(
+    repo_id="vengeance22/gravitational-wave-model",
+    filename="best_model.keras"
+)
 
-model = tf.keras.models.load_model("best_model.keras")
+model = tf.keras.models.load_model(model_path)
 
 
 
