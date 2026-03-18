@@ -16,8 +16,8 @@ st.set_page_config(
 )
 
 # Title
-st.title("🌊 Gravitational Wave Detection System")
-st.markdown("*AI-powered detection of cosmic collisions using deep learning*")
+st.title(" Gravitational Wave Detection System")
+st.markdown("*Detection of cosmic collisions using deep learning*")
 
 # Sidebar
 with st.sidebar:
