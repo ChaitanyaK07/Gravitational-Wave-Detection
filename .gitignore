@@ -11,6 +11,9 @@ models/*.h5
 # Results
 results/*.png
 
+results/
+*.png
+
 # Python
 __pycache__/
 *.pyc
