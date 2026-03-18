@@ -78,7 +78,7 @@ SAMPLE_PREDICTIONS = {
 }
 
 # Main content
-st.header(" Interactive Demo")
+st.header(" Demo")
 st.markdown("Select a sample to see the model's prediction:")
 
 # Sample selector
