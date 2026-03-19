@@ -46,36 +46,35 @@ MODEL_LOADED = model is not None
 
 def predict_from_image(image):
     """
-    Real CNN prediction with preprocessing matching training data
-    
-    IMPORTANT: The model was trained on images that were already 
-    normalized when saved as PNG files from matplotlib.
-    We need to match that preprocessing exactly.
+    Real CNN prediction with CORRECTED preprocessing to match training data
     """
     try:
-        # Convert to RGB
+        # Step 1: Convert to RGB (removes alpha channel if present)
         if image.mode != 'RGB':
-            image = image.convert('RGB')
+            # For RGBA images, composite on white background first
+            if image.mode == 'RGBA':
+                # Create white background
+                background = Image.new('RGB', image.size, (255, 255, 255))
+                # Paste image on white background using alpha channel
+                background.paste(image, mask=image.split()[3])  # 3 is the alpha channel
+                image = background
+            else:
+                image = image.convert('RGB')
         
-        # Resize to 224x224
+        # Step 2: Resize to 224x224
         img_resized = image.resize((224, 224), Image.Resampling.LANCZOS)
         
-        # Convert to numpy array (values are 0-255)
+        # Step 3: Convert to numpy array
         img_array = np.array(img_resized, dtype=np.float32)
         
-        # Check if image is already normalized (values 0-1)
-        # This happens with matplotlib-saved spectrograms
-        if img_array.max() <= 1.0:
-            # Already normalized, use as-is
-            img_normalized = img_array
-        else:
-            # Normalize to [0, 1]
-            img_normalized = img_array / 255.0
+        # Step 4: Normalize to [0, 1] - ALWAYS divide by 255
+        # (Training data was saved as PNG which stores normalized values as 0-255)
+        img_normalized = img_array / 255.0
         
-        # Add batch dimension
+        # Step 5: Add batch dimension
         img_batch = np.expand_dims(img_normalized, axis=0)
         
-        # Predict
+        # Step 6: Predict
         prediction = model.predict(img_batch, verbose=0)
         
         return float(prediction[0][0])
@@ -83,7 +82,6 @@ def predict_from_image(image):
     except Exception as e:
         st.error(f"Prediction error: {e}")
         return 0.5
-
 
 # Sample data
 SAMPLE_DATA = {
