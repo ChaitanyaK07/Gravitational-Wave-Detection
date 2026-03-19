@@ -13,13 +13,13 @@ import os
 # Page config
 st.set_page_config(
     page_title="Gravitational Wave Detector",
-    page_icon="🌊",
+    page_icon="",
     layout="wide"
 )
 
 # Google Drive file ID (replace with yours!)
 GDRIVE_FILE_ID = "16LqCb_cxJZM_tXADTNhdYXa03vjfN-aV"  # ← PUT YOUR FILE_ID HERE
-MODEL_URL = f"https://drive.google.com/uc?id={"16LqCb_cxJZM_tXADTNhdYXa03vjfN-aV"}"
+MODEL_URL = f"https://drive.google.com/uc?id={GDRIVE_FILE_ID}"
 MODEL_PATH = "best_model.keras"
 
 @st.cache_resource
