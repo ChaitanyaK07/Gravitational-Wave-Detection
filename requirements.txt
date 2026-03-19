@@ -10,3 +10,5 @@ seaborn
 pillow
 gradio 
 pillow
+streamlit
+gdown

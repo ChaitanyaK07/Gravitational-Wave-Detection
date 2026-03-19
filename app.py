@@ -6,41 +6,62 @@ Upload your own Q-transform spectrograms for classification
 import streamlit as st
 from PIL import Image
 import numpy as np
-import io
 import tensorflow as tf
-import requests
+import gdown
+import os
 
 # Page config
 st.set_page_config(
     page_title="Gravitational Wave Detector",
-    page_icon="",
+    page_icon="🌊",
     layout="wide"
 )
 
-from huggingface_hub import hf_hub_download
-import tensorflow as tf
+# Google Drive file ID (replace with yours!)
+GDRIVE_FILE_ID = "16LqCb_cxJZM_tXADTNhdYXa03vjfN-aV"  # ← PUT YOUR FILE_ID HERE
+MODEL_URL = f"https://drive.google.com/uc?id={"16LqCb_cxJZM_tXADTNhdYXa03vjfN-aV"}"
+MODEL_PATH = "best_model.keras"
 
-model_path = hf_hub_download(
-    repo_id="vengeance22/gravitational-wave-model",
-    filename="best_model.keras"
-)
+@st.cache_resource
+def load_model():
+    """Download and load the trained model from Google Drive"""
+    if not os.path.exists(MODEL_PATH):
+        with st.spinner("Downloading model (309MB, one-time only)..."):
+            gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
+    
+    model = tf.keras.models.load_model(MODEL_PATH)
+    return model
 
-model = tf.keras.models.load_model(model_path)
+# Load model
+try:
+    model = load_model()
+    MODEL_LOADED = True
+except Exception as e:
+    st.error(f"Error loading model: {e}")
+    MODEL_LOADED = False
 
-
-
+# Real prediction function using actual model
 def predict_from_image(image):
-    # Resize and normalize
+    """
+    Real model prediction on uploaded image
+    """
+    # Resize and preprocess
     img_resized = image.resize((224, 224))
-    img_array = np.array(img_resized) / 255.0
+    img_array = np.array(img_resized)
+    
+    # Normalize
+    img_array = img_array / 255.0
+    
+    # Add batch dimension
     img_array = np.expand_dims(img_array, axis=0)
     
     # Predict
     prediction = model.predict(img_array, verbose=0)[0][0]
-    return prediction
+    
+    return float(prediction)
 
 
-# Sample data for demo mode
+# Sample data
 SAMPLE_DATA = {
     'GW150914 (Signal)': {
         'image': 'results/figures/sample_signal_1.png',
@@ -74,7 +95,10 @@ SAMPLE_DATA = {
 
 # Header
 st.title(" Gravitational Wave Detection System")
-st.markdown("* Detection of cosmic collisions using deep learning*")
+st.markdown("* Detection using a real trained CNN model*")
+
+if not MODEL_LOADED:
+    st.error(" Model failed to load. Using demo mode.")
 
 # Sidebar
 with st.sidebar:
@@ -86,6 +110,11 @@ with st.sidebar:
     **Training Data:** 4 LIGO events  
     **Input:** 224×224 Q-transform spectrograms
     """)
+    
+    if MODEL_LOADED:
+        st.success(" Model loaded successfully!")
+    else:
+        st.warning(" Model not loaded")
     
     st.header(" Technology")
     st.markdown("""
@@ -101,17 +130,16 @@ with st.sidebar:
     st.markdown("---")
     st.header(" How to Use")
     st.markdown("""
-    **Option 1:** Upload your own Q-transform spectrogram image
+    **Option 1:** Upload your own Q-transform spectrogram
     
-    **Option 2:** Try pre-loaded samples from real LIGO events
+    **Option 2:** Try pre-loaded samples
     
-    **Accepted formats:** PNG, JPG, JPEG
+    **Formats:** PNG, JPG, JPEG
     """)
 
 # Main content
 st.header(" Gravitational Wave Classifier")
 
-# Mode selection
 mode = st.radio(
     "Choose mode:",
     [" Upload Your Own Image", " Try Sample Images"],
@@ -127,46 +155,44 @@ if mode == " Upload Your Own Image":
     uploaded_file = st.file_uploader(
         "Choose an image file",
         type=['png', 'jpg', 'jpeg'],
-        help="Upload a Q-transform spectrogram image (224×224 recommended)"
+        help="Upload a Q-transform spectrogram (224×224 recommended)"
     )
     
     if uploaded_file is not None:
-        # Load image
         image = Image.open(uploaded_file)
         
-        # Display and predict
         col1, col2 = st.columns(2)
         
         with col1:
             st.subheader(" Uploaded Spectrogram")
             st.image(image, use_column_width=True)
-            st.caption(f"Image size: {image.size[0]}×{image.size[1]} pixels")
+            st.caption(f"Size: {image.size[0]}×{image.size[1]} pixels")
         
         with col2:
             st.subheader(" Model Prediction")
             
-            # Get prediction
-            with st.spinner("Analyzing spectrogram..."):
-                prediction = predict_from_image(image)
+            if MODEL_LOADED:
+                with st.spinner("Analyzing with real CNN model..."):
+                    prediction = predict_from_image(image)
+            else:
+                st.error("Model not loaded. Cannot predict.")
+                prediction = 0.5
             
-            # Display result
             if prediction > 0.5:
                 st.success(f"###  GRAVITATIONAL WAVE DETECTED")
                 st.metric("Confidence", f"{prediction*100:.1f}%")
                 st.markdown("""
-                **Interpretation:** This spectrogram shows characteristics 
-                consistent with a gravitational wave signal! The model detected 
-                patterns similar to the chirp signature of merging compact objects.
+                **Interpretation:** The CNN detected patterns consistent 
+                with a gravitational wave chirp signature!
                 """)
             else:
                 st.info(f"###  BACKGROUND NOISE")
                 st.metric("Confidence", f"{(1-prediction)*100:.1f}%")
                 st.markdown("""
-                **Interpretation:** This appears to be detector background noise. 
-                No significant gravitational wave signature was detected.
+                **Interpretation:** No significant gravitational wave 
+                signature detected.
                 """)
             
-            # Probability distribution
             st.markdown("---")
             st.markdown("**Probability Distribution:**")
             
@@ -176,82 +202,83 @@ if mode == " Upload Your Own Image":
             st.progress(int(prob_signal)/100, text=f"Signal: {prob_signal:.0f}%")
             st.progress(int(prob_noise)/100, text=f"Noise: {prob_noise:.0f}%")
             
-            # Technical details
-            st.markdown("---")
-            with st.expander("🔍 Classification Details"):
+            with st.expander(" Classification Details"):
                 st.markdown(f"""
                 - **Input size:** {image.size[0]}×{image.size[1]} pixels
-                - **Resized to:** 224×224 (model input)
-                - **Prediction score:** {prediction:.4f}
+                - **Resized to:** 224×224×3
+                - **Raw prediction:** {prediction:.6f}
                 - **Classification:** {'Signal' if prediction > 0.5 else 'Noise'}
-                - **Threshold:** 0.5 (50%)
+                - **Threshold:** 0.50
                 """)
         
-        # Download results
         st.markdown("---")
-        if st.button("📥 Download Results as Text"):
-            result_text = f"""
-Gravitational Wave Detection Results
+        if st.button(" Download Results"):
+            result_text = f"""Gravitational Wave Detection Results
 {'='*50}
 File: {uploaded_file.name}
 Prediction: {'GRAVITATIONAL WAVE' if prediction > 0.5 else 'BACKGROUND NOISE'}
 Confidence: {max(prediction, 1-prediction)*100:.1f}%
-Signal Probability: {prediction*100:.1f}%
-Noise Probability: {(1-prediction)*100:.1f}%
+Signal Probability: {prediction*100:.2f}%
+Noise Probability: {(1-prediction)*100:.2f}%
 
 Model: 4-layer CNN (8.5M parameters)
-Accuracy: ~60% on test set
+Test Accuracy: ~60%
 """
             st.download_button(
-                label="Download",
-                data=result_text,
-                file_name="gw_detection_results.txt",
-                mime="text/plain"
+                " Save as TXT",
+                result_text,
+                f"gw_results_{uploaded_file.name}.txt",
+                "text/plain"
             )
     
     else:
-        # Instructions when no file uploaded
-        st.info(" Upload a Q-transform spectrogram image to begin analysis")
+        st.info(" Upload a Q-transform spectrogram to begin")
         
-        st.markdown("###  Tips for Best Results:")
-        st.markdown("""
-        - Use Q-transform spectrograms (not raw time series)
-        - Recommended size: 224×224 pixels
-        - Frequency range: 20-400 Hz
-        - Time window: ±2 seconds around potential event
-        - Supported formats: PNG, JPG, JPEG
-        """)
-        
-        st.markdown("###  Get Sample Data:")
-        st.markdown("""
-        Don't have data? Download sample spectrograms from:
-        - [LIGO Open Science Center](https://www.gw-openscience.org/)
-        - [Project GitHub Repository](https://github.com/ChaitanyaK07/gravitational-wave-detection/tree/main/results/figures)
-        """)
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("###  Best Practices:")
+            st.markdown("""
+            - Q-transform spectrograms
+            - 224×224 pixels recommended
+            - Frequency: 20-400 Hz
+            - PNG, JPG, JPEG formats
+            """)
+        with col2:
+            st.markdown("###  Sample Data:")
+            st.markdown("""
+            - [LIGO Open Science](https://www.gw-openscience.org/)
+            - [GitHub Repo](https://github.com/ChaitanyaK07/gravitational-wave-detection)
+            """)
 
 # Sample mode
 else:
     st.subheader("Try Pre-Loaded Samples")
     
-    # Sample selector
     sample_name = st.selectbox(
         "Choose a sample:",
         options=list(SAMPLE_DATA.keys())
     )
     
     sample = SAMPLE_DATA[sample_name]
-    prediction = sample['prediction']
     
-    # Display
     col1, col2 = st.columns(2)
     
     with col1:
-        st.subheader("📈 Q-Transform Spectrogram")
+        st.subheader(" Q-Transform Spectrogram")
         try:
             img = Image.open(sample['image'])
             st.image(img, use_column_width=True)
+            
+            # Get real prediction on sample too
+            if MODEL_LOADED:
+                with st.spinner("Running model..."):
+                    prediction = predict_from_image(img)
+            else:
+                prediction = sample['prediction']
         except:
             st.info(f"Spectrogram: {sample_name}")
+            prediction = sample['prediction']
+        
         st.caption(sample['description'])
     
     with col2:
@@ -269,52 +296,36 @@ else:
         st.write(f"- **Distance:** {sample['distance']}")
         
         st.markdown("---")
-        st.markdown("**Probability Distribution:**")
         prob_signal = prediction * 100
         prob_noise = (1 - prediction) * 100
         
         st.progress(int(prob_signal)/100, text=f"Signal: {prob_signal:.0f}%")
         st.progress(int(prob_noise)/100, text=f"Noise: {prob_noise:.0f}%")
 
-# How it works section
 st.markdown("---")
 st.header(" How It Works")
 
 col1, col2, col3, col4 = st.columns(4)
 with col1:
     st.markdown("**1. Upload**")
-    st.write("Spectrogram image")
+    st.write("Image file")
 with col2:
-    st.markdown("**2. Preprocessing**")
-    st.write("Resize to 224×224")
+    st.markdown("**2. Process**")
+    st.write("Resize, normalize")
 with col3:
-    st.markdown("**3. CNN Analysis**")
-    st.write("Extract features")
+    st.markdown("**3. CNN**")
+    st.write("Feature extraction")
 with col4:
-    st.markdown("**4. Classification**")
-    st.write("Signal or Noise")
+    st.markdown("**4. Classify**")
+    st.write("Signal/Noise")
 
-# Technical details
 with st.expander(" Technical Details"):
     st.markdown("""
-    ### Preprocessing Pipeline
-    - FFT-based whitening to normalize noise floor
-    - Butterworth bandpass filtering (30-400 Hz)
-    - Q-transform time-frequency analysis
-    - Log-scale frequency binning
+    **Preprocessing:** FFT whitening, Butterworth filter (30-400 Hz), Q-transform
     
-    ### CNN Architecture
-    - **Input:** 224×224×3 spectrograms
-    - **Conv blocks:** 32→64→128→256 filters
-    - **Regularization:** Batch normalization + Dropout (0.25-0.5)
-    - **Dense layers:** 512→256→1
-    - **Output:** Sigmoid activation (binary classification)
+    **CNN:** 4 blocks (32→64→128→256), Batch norm, Dropout (0.25-0.5)
     
-    ### Training
-    - **Dataset:** 52 images (24 signal, 28 noise)
-    - **Optimizer:** Adam
-    - **Loss:** Binary crossentropy
-    - **Test Accuracy:** ~60%
+    **Training:** 52 images, Adam optimizer, Binary crossentropy
     """)
 
 with st.expander(" Model Performance"):
@@ -322,33 +333,10 @@ with st.expander(" Model Performance"):
     col1.metric("Accuracy", "60%")
     col2.metric("Precision", "58%")
     col3.metric("Recall", "56%")
-    
-    st.markdown("""
-    **Note:** Performance is limited by small dataset. Real LIGO detection 
-    uses sophisticated matched filtering with theoretical waveform templates.
-    """)
 
-with st.expander("ℹ About Gravitational Waves"):
-    st.markdown("""
-    Gravitational waves are ripples in spacetime caused by massive cosmic events 
-    like colliding black holes or neutron stars. First predicted by Einstein in 
-    1915 and detected by LIGO in 2015 (Nobel Prize 2017).
-    
-    **Key Facts:**
-    - Extremely weak signals (strain ~ 10⁻²¹)
-    - Travel at the speed of light
-    - Carry information about cosmic events
-    - LIGO uses 4km laser interferometers
-    
-    This project demonstrates how deep learning can complement traditional 
-    detection methods by learning patterns directly from data.
-    """)
-
-# Footer
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: gray;'>
-    Built with TensorFlow, Keras & Streamlit | Data from LIGO Open Science Center<br>
-    Model trained on GW150914, GW151226, GW170817, GW170814
+    Built with TensorFlow, Keras & Streamlit | Real CNN model trained on LIGO data
 </div>
 """, unsafe_allow_html=True)
