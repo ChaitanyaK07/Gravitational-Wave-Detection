@@ -243,7 +243,7 @@ if mode == " Upload Your Own Image":
                     prediction = predict_from_image(image)
                 
                 # Display result
-                if prediction > 0.5:
+                '''if prediction > 0.5:
                     st.success("###  GRAVITATIONAL WAVE DETECTED")
                     st.metric("Signal Confidence", f"{prediction*100:.2f}%", delta="Positive")
                     st.markdown("""
@@ -259,7 +259,18 @@ if mode == " Upload Your Own Image":
                     ** Interpretation:**  
                     The model classifies this as detector background noise. No significant 
                     gravitational wave chirp pattern was detected in this spectrogram.
-                    """)
+                    """)'''
+                
+                THRESHOLD = 0.45  # Adjusted for better sensitivity
+
+                if prediction > THRESHOLD:
+                    st.success("### ✅ GRAVITATIONAL WAVE DETECTED")
+                    st.metric("Signal Confidence", f"{prediction*100:.2f}%", delta="Positive")
+                else:
+                    st.info("### ❌ BACKGROUND NOISE DETECTED")
+                    st.metric("Noise Confidence", f"{(1-prediction)*100:.2f}%", delta="Negative")
+
+                    st.caption(f"Decision threshold: {THRESHOLD} | Prediction score: {prediction:.4f}")
                 
                 # Probability distribution
                 st.markdown("---")
